@@ -2,30 +2,31 @@ from openai import OpenAI
 import base64
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct, VectorParams, Distance
+from dotenv import load_dotenv
+import os
 
-client = None
+load_dotenv()
 
-def load_openai(api_key):
-    global client
-    client = OpenAI(api_key=api_key)
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
-def get_image_description(image_bytes):
-    base64_image = base64.b64encode(image_bytes).decode("utf-8")
+def get_embedding(text: str) -> list[float]:
+    res = client.embeddings.create(
+        model="text-embedding-3-large",
+        input=text
+    )
+    return res.data[0].embedding
+
+def describe_image(image_b64: str) -> str:
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant that describes images."},
             {
                 "role": "user",
                 "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}",
-                            "detail": "high"
-                        }
-                    },
-                    {"type": "text", "text": "Describe this image."}
+                    {"type": "text", "text": "Describe this image in detail."},
+                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_b64}"}}
                 ]
             }
         ]
