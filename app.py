@@ -50,7 +50,7 @@ with tab1:
             embedding = embed_text(description)
 
             # Save to Qdrant
-            image_id = str(uuid.uuid4())
+            image_id = (str(uuid.uuid4()))
             add_image_to_qdrant(
                 qdrant_client,
                 COLLECTION_NAME,
